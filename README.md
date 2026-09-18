@@ -1,41 +1,17 @@
-# Daily Rep
+# DailyFit
 
-A mobile app for tracking daily workouts and reps. Log specific exercises, count your sets, and stay consistent — all offline, all on your device.
+A simple **Daily Workout & Rep Tracker** prototype built with React Native and Expo.
 
-## Status
+The app lives in [daily-rep](daily-rep/). It includes three tabs: Workout, History, and Profile, with local storage for completed sessions and a display name. No accounts, server, or user database are required.
 
-🚧 **Early development** — project just started. This README will be updated as the app is built.
+## Start
 
-## Planned Tech Stack
+```sh
+cd daily-rep
+npm install
+npm start
+```
 
-- **Frontend:** HTML, CSS, JavaScript
-- **Mobile Framework:** [Expo](https://expo.dev/) (React Native) — easy setup and Play Store deployment
-- **Database:** SQLite (local, offline-first — no server required)
+Use Expo Go for the phone preview, or `npm run web` for the browser preview.
 
-## Core Idea
-
-- Log workouts day by day
-- Track specific exercises (push-ups, squats, etc.) with sets and reps
-- Fully standalone and offline — data lives on the device
-- Simple, fast, private
-
-## Roadmap
-
-- [ ] Initial project setup (Expo + SQLite)
-- [ ] Database schema for exercises, workouts, and sets
-- [ ] Home screen with today's workout
-- [ ] Log exercise + reps flow
-- [ ] Workout history
-- [ ] Play Store release
-
-## Getting Started
-
-Coming soon — setup instructions will be added once the project scaffold is in place.
-
-## License
-
-TBD
-
----
-
-*Work in progress. Check back soon.*
+See [the app README](daily-rep/README.md) for requirements, features, storage limitations, testing steps, and a technical-defense walkthrough.
