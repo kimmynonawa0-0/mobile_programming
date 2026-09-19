@@ -23,6 +23,8 @@ Two tabs (Workout and History) would also satisfy the core topic. Three are used
 
 ## Storage and scope
 
+The routine shortcuts are **Bodyweight** and **With equipment**. The Add Exercise picker includes offline muscle thumbnails, target labels, and equipment/muscle filters. Thumbnail artwork is adapted from the MIT-licensed react-native-body-highlighter project; see [asset credits and license](assets/muscles/README.md). The images illustrate target muscles rather than exercise technique.
+
 There is no server, authentication, user database, or SQLite setup. AsyncStorage stores one JSON document (`daily-rep-v1`) with a display name and completed sessions on the current device/browser. Saving awaits the storage write before updating history, and failures show a retryable message. Clearing app/browser data removes these records; they do not sync across devices.
 
 Unfinished workouts remain available when switching tabs but are not persisted after closing/reloading the app. Only checked sets are saved; uncompleted exercises are omitted. Session duration is elapsed time rounded to minutes, minimum one minute. Templates are fixed starting points, and saved sessions are read-only in this prototype.

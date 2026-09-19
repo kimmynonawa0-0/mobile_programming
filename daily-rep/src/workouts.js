@@ -1,4 +1,5 @@
-export const exercises = ['Push-ups', 'Squats', 'Lunges', 'Bench press', 'Dumbbell row', 'Bicep curls', 'Deadlift', 'Shoulder press', 'Pull-ups', 'Sit-ups', 'Calf raises', 'Tricep extensions'];
+import { exerciseCatalog } from './exerciseCatalog.js';
+export const exercises = exerciseCatalog.map(exercise => exercise.name);
 let counter = 0;
 export function newExercise(name) {
   const id = `${Date.now()}-${counter++}`;

@@ -6,7 +6,9 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { exercises, newExercise, summarize, finishSession } from './src/workouts';
+import { newExercise, summarize, finishSession } from './src/workouts';
+
+import ExercisePicker from './src/ExercisePicker';
 
 const KEY = 'daily-rep-v1';
 const Context = createContext(null);
@@ -30,7 +32,6 @@ function Workout({ navigation }) {
   const { data, commit, busy, setNotice } = useContext(Context);
   const [draft, setDraft] = useState(null);
   const [picker, setPicker] = useState(false);
-  const [query, setQuery] = useState('');
   const [discard, setDiscard] = useState(false);
   const [error, setError] = useState('');
   const updateExercise = (id, fn) => setDraft(current => ({ ...current, exercises: current.exercises.map(e => e.id === id ? fn(e) : e) }));
@@ -47,8 +48,8 @@ function Workout({ navigation }) {
       <Pressable accessibilityRole="button" onPress={() => start()} style={s.startButton}><Icon name="add" size={28} /><Text style={s.actionText}>Start Empty Workout</Text></Pressable>
       <Text style={s.sectionTitle}>Routines</Text>
       <View style={s.routines}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Start Bodyweight routine" onPress={() => start(['Push-ups', 'Squats', 'Lunges'])} style={s.routine}><Icon name="clipboard-outline" size={30} /><Text style={s.routineTitle}>Bodyweight</Text><Text style={s.muted}>3 exercises</Text></Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Start Upper body routine" onPress={() => start(['Bench press', 'Dumbbell row', 'Bicep curls'])} style={s.routine}><Icon name="barbell-outline" size={30} /><Text style={s.routineTitle}>Upper body</Text><Text style={s.muted}>3 exercises</Text></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Start Bodyweight routine" onPress={() => start(['Push-ups', 'Squats', 'Lunges'])} style={s.routine}><Icon name="body-outline" size={30} /><Text style={s.routineTitle}>Bodyweight</Text><Text style={s.muted}>3 exercises</Text></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Start With equipment routine" onPress={() => start(['Bench press', 'Dumbbell row', 'Bicep curls'])} style={s.routine}><Icon name="barbell-outline" size={30} /><Text style={s.routineTitle}>With equipment</Text><Text style={s.muted}>3 exercises</Text></Pressable>
       </View>
     </> : <>
       <Input accessibilityLabel="Workout name" placeholder="Workout name (optional)" value={draft.name} maxLength={60} onChangeText={name => setDraft({ ...draft, name })} />
@@ -63,13 +64,18 @@ function Workout({ navigation }) {
         </View>)}
         <Button title="Add set" secondary onPress={() => updateExercise(exercise.id, e => ({ ...e, sets: [...e.sets, { id: `${Date.now()}-${e.sets.length}`, reps: '10', weight: '', done: false }] }))} />
       </View>)}
-      <Button title="Add exercise" secondary icon="add" onPress={() => { setQuery(''); setPicker(true); }} />
+      <Button title="Add exercise" secondary icon="add" onPress={() => setPicker(true)} />
       {!!error && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
       <Button title={busy ? 'Saving…' : 'Finish & save workout'} disabled={busy} icon="checkmark-circle-outline" onPress={save} />
       <Button title="Discard workout" secondary disabled={busy} onPress={() => setDiscard(true)} />
     </>}
   </ScrollView></KeyboardAvoidingView>
-    <Sheet visible={picker} title="Choose an exercise" onClose={() => setPicker(false)}><View style={s.sheetHeader}><Input accessibilityLabel="Search exercises" placeholder="Search exercises…" value={query} onChangeText={setQuery} /></View><FlatList keyboardShouldPersistTaps="handled" data={exercises.filter(e => e.toLowerCase().includes(query.toLowerCase()))} keyExtractor={x => x} contentContainerStyle={s.content} ListEmptyComponent={<Text style={s.muted}>No matching exercises. Try another name.</Text>} renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityLabel={`Add ${item}`} style={s.card} onPress={() => { setDraft(current => ({ ...current, exercises: [...current.exercises, newExercise(item)] })); setPicker(false); }}><View style={s.row}><Text style={[s.heading, s.flex]}>{item}</Text><Icon name="add-circle-outline" color={colors.blue} /></View></Pressable>} /></Sheet>
+    <Sheet visible={picker} title="Add Exercise" onClose={() => setPicker(false)}>
+      {picker && <ExercisePicker onSelect={name => {
+        setDraft(current => ({ ...current, exercises: [...current.exercises, newExercise(name)] }));
+        setPicker(false);
+      }} />}
+    </Sheet>
     <Sheet visible={discard} title="Discard this workout?" onClose={() => setDiscard(false)}><View style={s.content}><Text style={s.muted}>This unfinished session will be removed.</Text><Button title="Keep working out" onPress={() => setDiscard(false)} /><Button title="Discard session" secondary onPress={() => { setDraft(null); setDiscard(false); }} /></View></Sheet>
   </SafeAreaView>;
 }
