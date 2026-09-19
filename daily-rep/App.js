@@ -9,11 +9,12 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { newExercise, summarize, finishSession } from './src/workouts';
 
 import ExercisePicker from './src/ExercisePicker';
+import EmberLaunch, { EmberWordmark } from './src/EmberBrand';
 
 const KEY = 'daily-rep-v1';
 const Context = createContext(null);
 const Tabs = createBottomTabNavigator();
-const colors = { bg: '#000000', card: '#1c1c1e', blue: '#009dff', muted: '#929295', text: '#ffffff' };
+const colors = { bg: '#000000', card: '#1c1c1e', blue: '#f07842', muted: '#929295', text: '#ffffff' };
 function Icon({ name, size = 22, color = colors.text }) { return <Ionicons name={name} size={size} color={color} />; }
 function Button({ title, onPress, secondary, disabled, icon }) {
   return <Pressable accessibilityRole="button" accessibilityLabel={title} disabled={disabled} onPress={onPress} style={({ pressed }) => [s.button, secondary && s.secondary, (pressed || disabled) && { opacity: 0.5 }]}>
@@ -21,7 +22,7 @@ function Button({ title, onPress, secondary, disabled, icon }) {
   </Pressable>;
 }
 function Input(props) { return <TextInput placeholderTextColor={colors.muted} selectionColor={colors.blue} {...props} style={[s.input, props.style]} />; }
-function Header({ eyebrow, title, subtitle }) { return <View style={s.header}><Text style={s.brand}>DailyFit</Text><Text style={s.title}>{title}</Text>{eyebrow && <Text style={s.muted}>{eyebrow}</Text>}{subtitle && <Text style={s.muted}>{subtitle}</Text>}</View>; }
+function Header({ eyebrow, title, subtitle }) { return <View style={s.header}><EmberWordmark /><Text style={s.title}>{title}</Text>{eyebrow && <Text style={s.muted}>{eyebrow}</Text>}{subtitle && <Text style={s.muted}>{subtitle}</Text>}</View>; }
 function Stats({ items }) { return <View style={s.row}>{items.map(([value, label]) => <View key={label} style={s.stat}><Text style={s.statValue}>{value}</Text><Text style={s.muted}>{label}</Text></View>)}</View>; }
 function Empty({ icon, title, text }) { return <View style={s.empty}><Icon name={icon} size={44} color={colors.muted} /><Text style={s.muted}>{title}</Text>{text && <Text style={[s.muted, { textAlign: 'center' }]}>{text}</Text>}</View>; }
 function Sheet({ visible, title, onClose, children }) {
@@ -125,6 +126,12 @@ function AppNavigation() {
 export default function App() {
   const [data, setData] = useState({ name: '', sessions: [] });
   const [ready, setReady] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
+  // Give the brand reveal a brief moment; storage loads at the same time.
+  useEffect(() => {
+    const timer = setTimeout(() => setIntroDone(true), 1100);
+    return () => clearTimeout(timer);
+  }, []);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
@@ -143,7 +150,7 @@ export default function App() {
     finally { saving.current = false; setBusy(false); }
   }
   return <SafeAreaProvider><StatusBar style="light" /><Context.Provider value={{ data, commit, busy, setNotice }}><View style={s.app}>
-    {!ready ? <View style={s.empty}>{loadError ? <><Text style={s.body}>Could not load your saved workouts.</Text><Button title="Retry" onPress={load} /></> : <ActivityIndicator color={colors.blue} />}</View> : <>
+    {(!introDone || (!ready && !loadError)) ? <EmberLaunch /> : !ready ? <View style={s.empty}>{loadError ? <><Text style={s.body}>Could not load your saved workouts.</Text><Button title="Retry" onPress={load} /></> : <ActivityIndicator color={colors.blue} />}</View> : <>
       {!!notice && <SafeAreaView edges={['top']} style={s.notice}><Text accessibilityLiveRegion="polite" style={[s.body, s.flex]}>{notice}</Text><Pressable accessibilityRole="button" accessibilityLabel="Dismiss message" style={s.iconButton} onPress={() => setNotice('')}><Icon name="close" /></Pressable></SafeAreaView>}
       <AppNavigation />
     </>}
@@ -170,7 +177,7 @@ const s = StyleSheet.create({
   routineTitle: { color: colors.text, fontSize: 17, textAlign: 'center' },
   card: { backgroundColor: colors.card, padding: 18, borderRadius: 12, gap: 14, marginBottom: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  button: { minHeight: 48, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 10, backgroundColor: '#007ac2', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  button: { minHeight: 48, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 10, backgroundColor: '#a9401c', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   buttonText: { color: '#fff', fontWeight: '500', fontSize: 16 },
   secondary: { backgroundColor: '#2b2b2d' },
   input: { backgroundColor: '#111111', borderWidth: 1, borderColor: '#38383a', borderRadius: 8, padding: 12, color: colors.text, minHeight: 48, fontSize: 16, minWidth: 0 },
@@ -183,8 +190,8 @@ const s = StyleSheet.create({
   error: { color: '#ffa5a5', lineHeight: 22 },
   stack: { gap: 18, marginBottom: 20 },
   profileRow: { flexDirection: 'row', alignItems: 'center', gap: 20, paddingVertical: 12 },
-  avatar: { backgroundColor: '#bc1256', width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center' },
+  avatar: { backgroundColor: '#a9401c', width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center' },
   avatarText: { color: '#fff', fontSize: 36, fontWeight: '400' },
   footnote: { color: colors.muted, fontSize: 13, lineHeight: 20 },
-  notice: { backgroundColor: '#2d4056', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  notice: { backgroundColor: '#38251e', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8 },
 });

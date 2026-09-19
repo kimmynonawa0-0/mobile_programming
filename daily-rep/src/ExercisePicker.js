@@ -31,7 +31,7 @@ export default function ExercisePicker({ onSelect }) {
     {filter && <ScrollView style={styles.options} keyboardShouldPersistTaps="handled">
       {(filter === 'equipment' ? equipmentOptions : muscleOptions).map(option => <Pressable key={option} accessibilityRole="button" onPress={() => { filter === 'equipment' ? setEquipment(option) : setMuscle(option); setFilter(null); }} style={styles.option}>
         <Text style={styles.name}>{option}</Text>
-        {(filter === 'equipment' ? equipment : muscle) === option && <Ionicons name="checkmark" color="#009dff" size={20} />}
+        {(filter === 'equipment' ? equipment : muscle) === option && <Ionicons name="checkmark" color="#f07842" size={20} />}
       </Pressable>)}
     </ScrollView>}
     <Text style={styles.section}>{visible.length} exercises</Text>
@@ -40,7 +40,7 @@ export default function ExercisePicker({ onSelect }) {
       renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityLabel={`Add ${item.name}, ${item.muscle}, ${item.equipment}`} onPress={() => onSelect(item.name)} style={({ pressed }) => [styles.exercise, pressed && { opacity: 0.5 }]}>
         <MuscleThumbnail parts={item.parts} side={item.side} />
         <View style={styles.description}><Text style={styles.name}>{item.name}</Text><Text style={styles.muscle}>{item.muscle}</Text><Text style={styles.equipment}>{item.equipment}</Text></View>
-        <Ionicons name="add-circle-outline" size={23} color="#009dff" />
+        <Ionicons name="add-circle-outline" size={23} color="#f07842" />
       </Pressable>} />
   </View>;
 }

@@ -1,4 +1,4 @@
-# DailyFit prototype
+# EMBER prototype
 
 A React Native / Expo prototype for **Daily Workout & Rep Tracker**. The dark interface takes inspiration from the supplied workout screenshots.
 
@@ -14,6 +14,8 @@ npm start
 Scan the QR code with an Expo Go version compatible with SDK 57. The computer and phone should be on the same network. For a browser preview, run `npm run web`. Android emulator users can run `npm run android`; the iOS simulator requires macOS.
 
 ## Three tabs
+
+EMBER uses a custom vector wordmark and ember emblem. The logo/name intro plays on launch, while screen headers show only the name. See [branding assets and launch behavior](assets/brand/README.md) for editing/export instructions and Expo Go limitations.
 
 - **Workout:** start an empty session or a quick-start template, search the exercise list, add/remove exercises, edit reps and optional kilograms, add sets, check off completed sets, and save.
 - **History:** search saved sessions, see aggregate counts, and open a session's exercise/set details.
