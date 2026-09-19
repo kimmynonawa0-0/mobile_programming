@@ -25,27 +25,34 @@ function Input(props) { return <TextInput placeholderTextColor={colors.muted} se
 function Header({ eyebrow, title, subtitle }) { return <View style={s.header}><EmberWordmark /><Text style={s.title}>{title}</Text>{eyebrow && <Text style={s.muted}>{eyebrow}</Text>}{subtitle && <Text style={s.muted}>{subtitle}</Text>}</View>; }
 function Stats({ items }) { return <View style={s.row}>{items.map(([value, label]) => <View key={label} style={s.stat}><Text style={s.statValue}>{value}</Text><Text style={s.muted}>{label}</Text></View>)}</View>; }
 function Empty({ icon, title, text }) { return <View style={s.empty}><Icon name={icon} size={44} color={colors.muted} /><Text style={s.muted}>{title}</Text>{text && <Text style={[s.muted, { textAlign: 'center' }]}>{text}</Text>}</View>; }
-function Sheet({ visible, title, onClose, children }) {
-  return <Modal visible={visible} animationType="slide" onRequestClose={onClose}><SafeAreaView style={s.screen}><KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}><View style={[s.row, s.sheetHeader]}><Text style={[s.heading, s.flex]}>{title}</Text><Button title="Close" secondary onPress={onClose} /></View>{children}</KeyboardAvoidingView></SafeAreaView></Modal>;
+function Sheet({ visible, title, onClose, children, showClose = true }) {
+  return <Modal visible={visible} animationType="slide" onRequestClose={onClose}><SafeAreaView style={s.screen}><KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}><View style={[s.row, s.sheetHeader]}><Text style={[s.heading, s.flex]}>{title}</Text>{showClose && <Button title="Close" secondary onPress={onClose} />}</View>{children}</KeyboardAvoidingView></SafeAreaView></Modal>;
 }
 
 function Workout({ navigation }) {
   const { data, commit, busy, setNotice } = useContext(Context);
   const [draft, setDraft] = useState(null);
+  // Confirm exit only while the workout contains exercises.
+  const hasExercises = (draft?.exercises.length ?? 0) > 0;
   const [picker, setPicker] = useState(false);
   const [discard, setDiscard] = useState(false);
   const [error, setError] = useState('');
-  const updateExercise = (id, fn) => setDraft(current => ({ ...current, exercises: current.exercises.map(e => e.id === id ? fn(e) : e) }));
+  const updateExercise = (id, fn) => {
+    setDraft(current => ({ ...current, exercises: current.exercises.map(e => e.id === id ? fn(e) : e) }));
+  };
+  function closeWorkout() {
+    Keyboard.dismiss();
+    setDraft(null);
+    setPicker(false);
+    setDiscard(false);
+    setError('');
+  }
   const start = (routine = []) => { setError(''); setNotice(''); setDraft({ id: String(Date.now()), startedAt: new Date().toISOString(), name: '', exercises: routine.map(newExercise) }); };
   async function save() {
     try {
       const session = finishSession(draft);
       if (await commit({ ...data, sessions: [session, ...data.sessions] })) {
-        Keyboard.dismiss();
-        setDraft(null);
-        setPicker(false);
-        setDiscard(false);
-        setError('');
+        closeWorkout();
         setNotice('Workout saved.');
         navigation.navigate('History');
       }
@@ -61,10 +68,10 @@ function Workout({ navigation }) {
         <Pressable accessibilityRole="button" accessibilityLabel="Start With equipment routine" onPress={() => start(['Bench press', 'Dumbbell row', 'Bicep curls'])} style={s.routine}><Icon name="barbell-outline" size={30} /><Text style={s.routineTitle}>With equipment</Text><Text style={s.muted}>3 exercises</Text></Pressable>
       </View>
     </> : <>
-      <Input accessibilityLabel="Workout name" placeholder="Workout name (optional)" value={draft.name} maxLength={60} onChangeText={name => setDraft({ ...draft, name })} />
+      <Input accessibilityLabel="Workout name" placeholder="Workout name (optional)" value={draft.name} maxLength={60} onChangeText={name => { setDraft({ ...draft, name }); }} />
       <Text style={s.muted}>Enter reps and optional weight, then check off each completed set. Only checked sets are saved.</Text>
       {draft.exercises.map(exercise => <View key={exercise.id} style={s.card}>
-        <View style={s.row}><Text style={[s.heading, s.flex]}>{exercise.name}</Text><Pressable accessibilityRole="button" accessibilityLabel={`Remove ${exercise.name}`} style={s.iconButton} onPress={() => setDraft({ ...draft, exercises: draft.exercises.filter(e => e.id !== exercise.id) })}><Icon name="trash-outline" color={colors.muted} /></Pressable></View>
+        <View style={s.row}><Text style={[s.heading, s.flex]}>{exercise.name}</Text><Pressable accessibilityRole="button" accessibilityLabel={`Remove ${exercise.name}`} style={s.iconButton} onPress={() => { setDraft({ ...draft, exercises: draft.exercises.filter(e => e.id !== exercise.id) }); }}><Icon name="trash-outline" color={colors.muted} /></Pressable></View>
         <View style={s.row}><Text style={[s.muted, { width: 32 }]}>Set</Text><Text style={[s.muted, s.flex]}>Reps</Text><Text style={[s.muted, s.flex]}>Kg</Text><Text style={s.muted}>Done</Text></View>
         {exercise.sets.map((set, index) => <View key={set.id} style={s.row}><Text style={[s.body, { width: 32 }]}>{index + 1}</Text>
           <Input style={s.flex} accessibilityLabel={`${exercise.name} set ${index + 1} reps`} keyboardType="number-pad" value={set.reps} maxLength={4} onChangeText={reps => updateExercise(exercise.id, e => ({ ...e, sets: e.sets.map(x => x.id === set.id ? { ...x, reps } : x) }))} />
@@ -76,16 +83,16 @@ function Workout({ navigation }) {
       <Button title="Add exercise" secondary icon="add" onPress={() => setPicker(true)} />
       {!!error && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
       <Button title={busy ? 'Saving…' : 'Finish & save workout'} disabled={busy} icon="checkmark-circle-outline" onPress={save} />
-      <Button title="Discard workout" secondary disabled={busy} onPress={() => setDiscard(true)} />
+      <Button title={hasExercises ? 'Discard workout' : 'Close workout'} secondary disabled={busy} onPress={() => hasExercises ? setDiscard(true) : closeWorkout()} />
     </>}
   </ScrollView></KeyboardAvoidingView>
     <Sheet visible={picker} title="Add Exercise" onClose={() => setPicker(false)}>
       {picker && <ExercisePicker onSelect={name => {
-        setDraft(current => ({ ...current, exercises: [...current.exercises, newExercise(name)] }));
+            setDraft(current => ({ ...current, exercises: [...current.exercises, newExercise(name)] }));
         setPicker(false);
       }} />}
     </Sheet>
-    <Sheet visible={discard} title="Discard this workout?" onClose={() => setDiscard(false)}><View style={s.content}><Text style={s.muted}>This unfinished session will be removed.</Text><Button title="Keep working out" onPress={() => setDiscard(false)} /><Button title="Discard session" secondary onPress={() => { setDraft(null); setDiscard(false); }} /></View></Sheet>
+    <Sheet visible={discard} showClose={false} title="Discard this workout?" onClose={() => setDiscard(false)}><View style={s.content}><Text style={s.muted}>This unfinished session will be removed.</Text><Button title="Keep working out" onPress={() => setDiscard(false)} /><Button title="Discard session" secondary onPress={closeWorkout} /></View></Sheet>
   </SafeAreaView>;
 }
 
