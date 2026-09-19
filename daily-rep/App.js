@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
@@ -40,10 +40,18 @@ function Workout({ navigation }) {
   async function save() {
     try {
       const session = finishSession(draft);
-      if (await commit({ ...data, sessions: [session, ...data.sessions] })) { setDraft(null); setNotice('Workout saved.'); navigation.navigate('History'); }
+      if (await commit({ ...data, sessions: [session, ...data.sessions] })) {
+        Keyboard.dismiss();
+        setDraft(null);
+        setPicker(false);
+        setDiscard(false);
+        setError('');
+        setNotice('Workout saved.');
+        navigation.navigate('History');
+      }
     } catch (e) { setError(e.message); }
   }
-  return <SafeAreaView edges={['top']} style={s.screen}><KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}><ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+  return <SafeAreaView edges={['top']} style={s.screen}><KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}><ScrollView key={draft ? draft.id : 'workout-start'} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
     <Header title={draft ? 'Current workout' : 'Workout'} />
     {!draft ? <>
       <Pressable accessibilityRole="button" onPress={() => start()} style={s.startButton}><Icon name="add" size={28} /><Text style={s.actionText}>Start Empty Workout</Text></Pressable>
@@ -119,8 +127,27 @@ function Profile() {
 }
 
 function AppNavigation() {
+  const { setNotice } = useContext(Context);
   const insets = useSafeAreaInsets();
-  return <NavigationContainer theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: colors.bg, card: colors.card, primary: colors.blue } }}><Tabs.Navigator screenOptions={({ route }) => ({ headerShown: false, tabBarActiveTintColor: colors.blue, tabBarInactiveTintColor: colors.muted, tabBarStyle: { backgroundColor: colors.card, borderTopWidth: 0, height: 60 + insets.bottom, paddingBottom: insets.bottom + 10, paddingTop: 4 }, tabBarLabelStyle: { fontSize: 12, marginBottom: 4 }, tabBarItemStyle: { paddingTop: 0 }, tabBarIcon: ({ color, size }) => <Icon name={{ Workout: 'barbell-outline', History: 'time-outline', Profile: 'person-outline' }[route.name]} color={color} size={size} /> })}><Tabs.Screen name="Workout" component={Workout} /><Tabs.Screen name="History" component={History} /><Tabs.Screen name="Profile" component={Profile} /></Tabs.Navigator></NavigationContainer>;
+  return <NavigationContainer theme={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: colors.bg, card: colors.card, primary: colors.blue } }}><Tabs.Navigator screenListeners={{ tabPress: () => setNotice('') }} screenOptions={({ route }) => ({ headerShown: false, tabBarActiveTintColor: colors.blue, tabBarInactiveTintColor: colors.muted, tabBarStyle: { backgroundColor: colors.card, borderTopWidth: 0, height: 60 + insets.bottom, paddingBottom: insets.bottom + 10, paddingTop: 4 }, tabBarLabelStyle: { fontSize: 12, marginBottom: 4 }, tabBarItemStyle: { paddingTop: 0 }, tabBarIcon: ({ color, size }) => <Icon name={{ Workout: 'barbell-outline', History: 'time-outline', Profile: 'person-outline' }[route.name]} color={color} size={size} /> })}><Tabs.Screen name="Workout" component={Workout} /><Tabs.Screen name="History" component={History} /><Tabs.Screen name="Profile" component={Profile} /></Tabs.Navigator></NavigationContainer>;
+}
+
+// A floating message never changes the navigator's height or bottom-tab position.
+function NoticeBanner() {
+  const { notice, setNotice } = useContext(Context);
+  const insets = useSafeAreaInsets();
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(''), 3500);
+    return () => clearTimeout(timer);
+  }, [notice, setNotice]);
+  if (!notice) return null;
+  return <View pointerEvents="box-none" style={[s.noticeOverlay, { top: insets.top + 8 }]}>
+    <View style={s.notice}>
+      <Text accessibilityLiveRegion="polite" style={[s.body, s.flex]}>{notice}</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Dismiss message" style={s.iconButton} onPress={() => setNotice('')}><Icon name="close" /></Pressable>
+    </View>
+  </View>;
 }
 
 export default function App() {
@@ -149,10 +176,10 @@ export default function App() {
     catch { setNotice('Could not save on this device. Please try again.'); return false; }
     finally { saving.current = false; setBusy(false); }
   }
-  return <SafeAreaProvider><StatusBar style="light" /><Context.Provider value={{ data, commit, busy, setNotice }}><View style={s.app}>
+  return <SafeAreaProvider><StatusBar style="light" /><Context.Provider value={{ data, commit, busy, notice, setNotice }}><View style={s.app}>
     {(!introDone || (!ready && !loadError)) ? <EmberLaunch /> : !ready ? <View style={s.empty}>{loadError ? <><Text style={s.body}>Could not load your saved workouts.</Text><Button title="Retry" onPress={load} /></> : <ActivityIndicator color={colors.blue} />}</View> : <>
-      {!!notice && <SafeAreaView edges={['top']} style={s.notice}><Text accessibilityLiveRegion="polite" style={[s.body, s.flex]}>{notice}</Text><Pressable accessibilityRole="button" accessibilityLabel="Dismiss message" style={s.iconButton} onPress={() => setNotice('')}><Icon name="close" /></Pressable></SafeAreaView>}
       <AppNavigation />
+      <NoticeBanner />
     </>}
   </View></Context.Provider></SafeAreaProvider>;
 }
@@ -193,5 +220,6 @@ const s = StyleSheet.create({
   avatar: { backgroundColor: '#a9401c', width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center' },
   avatarText: { color: '#fff', fontSize: 36, fontWeight: '400' },
   footnote: { color: colors.muted, fontSize: 13, lineHeight: 20 },
-  notice: { backgroundColor: '#38251e', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  noticeOverlay: { position: 'absolute', left: 16, right: 16, zIndex: 10, alignItems: 'center' },
+  notice: { width: '100%', maxWidth: 600, borderRadius: 12, backgroundColor: '#38251e', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8 },
 });
