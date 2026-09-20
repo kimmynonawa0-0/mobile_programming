@@ -57,7 +57,7 @@ Manual demonstration:
 3. Save the workout. History should show one session, one set, and 12 reps.
 4. Open the session and check its details. Search for Push-ups.
 5. Open Profile and verify the EMBER logo, fixed Prototype User name, and one workout / one set / 12 reps. Reload and verify the session and totals remain.
-6. Start a template, add a set, remove an exercise, and test both canceling and confirming discard.
+6. Start a template and tap the pinned Go back button: with no checked sets it closes immediately, including any unchecked edits. Start again, check a set, and test both Keep working out and Discard session. Uncheck all sets and verify Go back closes immediately again.
 7. On a phone, check the number keyboard, scrolling, bottom tabs, and Android back behavior in modals.
 
 Expo reference: https://docs.expo.dev/versions/v57.0.0/

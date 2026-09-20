@@ -34,8 +34,8 @@ function Sheet({ visible, title, onClose, children, showClose = true }) {
 function Workout({ navigation }) {
   const { data, commit, busy, setNotice } = useContext(Context);
   const [draft, setDraft] = useState(null);
-  // Confirm exit only while the workout contains exercises.
-  const hasExercises = (draft?.exercises.length ?? 0) > 0;
+  // Only checked sets require confirmation before leaving the workout.
+  const hasCompletedSets = draft?.exercises.some(exercise => exercise.sets.some(set => set.done)) ?? false;
   const [picker, setPicker] = useState(false);
   const [discard, setDiscard] = useState(false);
   const [error, setError] = useState('');
@@ -60,8 +60,23 @@ function Workout({ navigation }) {
       }
     } catch (e) { setError(e.message); }
   }
-  return <SafeAreaView edges={['top']} style={s.screen}><KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}><ScrollView key={draft ? draft.id : 'workout-start'} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
-    <Header title={draft ? 'Current workout' : 'Workout'} />
+  return <SafeAreaView edges={['top']} style={s.screen}>
+    {draft && <View style={s.workoutToolbar}>
+      <View style={[s.row, { justifyContent: 'space-between' }]}>
+        <EmberWordmark />
+        <Pressable accessibilityRole="button" accessibilityLabel="Go back" accessibilityState={{ disabled: busy }} disabled={busy} onPress={() => {
+          Keyboard.dismiss();
+          if (hasCompletedSets) setDiscard(true);
+          else closeWorkout();
+        }} style={({ pressed }) => [s.backButton, (pressed || busy) && { opacity: 0.5 }]}>
+          <Icon name="chevron-back" color={colors.blue} size={18} />
+          <Text style={s.backLabel}>Go back</Text>
+        </Pressable>
+      </View>
+      <Text style={s.title}>Current workout</Text>
+    </View>}
+    <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}><ScrollView key={draft ? draft.id : 'workout-start'} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+    {!draft && <Header title="Workout" />}
     {!draft ? <>
       <Pressable accessibilityRole="button" onPress={() => start()} style={s.startButton}><Icon name="add" size={28} /><Text style={s.actionText}>Start Empty Workout</Text></Pressable>
       <Text style={s.sectionTitle}>Routines</Text>
@@ -89,7 +104,6 @@ function Workout({ navigation }) {
       <Button title="Add exercise" secondary icon="add" onPress={() => setPicker(true)} />
       {!!error && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
       <Button title={busy ? 'Saving…' : 'Finish & save workout'} disabled={busy} icon="checkmark-circle-outline" onPress={save} />
-      <Button title={hasExercises ? 'Discard workout' : 'Close workout'} secondary disabled={busy} onPress={() => hasExercises ? setDiscard(true) : closeWorkout()} />
     </>}
   </ScrollView></KeyboardAvoidingView>
     <Sheet visible={picker} title="Add Exercise" onClose={() => setPicker(false)}>
@@ -98,7 +112,7 @@ function Workout({ navigation }) {
         setPicker(false);
       }} />}
     </Sheet>
-    <Sheet visible={discard} showClose={false} title="Discard this workout?" onClose={() => setDiscard(false)}><View style={s.content}><Text style={s.muted}>This unfinished session will be removed.</Text><Button title="Keep working out" onPress={() => setDiscard(false)} /><Button title="Discard session" secondary onPress={closeWorkout} /></View></Sheet>
+    <Sheet visible={discard} showClose={false} title="Discard this workout?" onClose={() => setDiscard(false)}><View style={s.content}><Text style={s.muted}>Your checked sets have not been saved. Discard this session?</Text><Button title="Keep working out" onPress={() => setDiscard(false)} /><Button title="Discard session" secondary onPress={closeWorkout} /></View></Sheet>
   </SafeAreaView>;
 }
 
@@ -198,6 +212,9 @@ const s = StyleSheet.create({
   app: { flex: 1, backgroundColor: colors.bg },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: 20, gap: 18, width: '100%', maxWidth: 640, alignSelf: 'center', paddingBottom: 36 },
+  workoutToolbar: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 12, gap: 12, width: '100%', maxWidth: 640, alignSelf: 'center', backgroundColor: colors.bg },
+  backButton: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 48, paddingHorizontal: 8 },
+  backLabel: { color: colors.blue, fontSize: 16 },
   header: { gap: 18, marginTop: 4, marginBottom: 6 },
   brand: { color: colors.text, fontSize: 22, fontWeight: '600' },
   title: { color: colors.text, fontSize: 28, fontWeight: '600' },
