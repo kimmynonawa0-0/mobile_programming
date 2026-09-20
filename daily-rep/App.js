@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
@@ -109,25 +109,22 @@ function History({ navigation }) {
   </SafeAreaView>;
 }
 function Profile() {
-  const { data, commit, busy, setNotice } = useContext(Context);
-  const [name, setName] = useState(data.name);
+  const { data } = useContext(Context);
   const totals = summarize(data.sessions);
   return <SafeAreaView edges={['top']} style={s.screen}>
-    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>
+    <ScrollView contentContainerStyle={s.content}>
       <Header title="Profile" />
       <View style={s.profileRow}>
-        <View style={s.avatar}><Text style={s.avatarText}>{(data.name.trim()[0] || 'Y').toUpperCase()}</Text></View>
-        <View style={s.flex}><Text style={s.heading}>{data.name || 'Your name'}</Text><Text style={s.muted}>{data.sessions.length} workouts</Text></View>
+        <Image source={require('./assets/brand/icon.png')} style={s.avatar} accessibilityLabel="EMBER logo" />
+        <View style={s.flex}>
+          <Text style={s.heading}>Prototype User</Text>
+          <Text style={s.muted}>Local workout profile</Text>
+        </View>
       </View>
       <Text style={s.sectionLabel}>Overview</Text>
-      <Stats items={[[data.sessions.length, 'Workouts'], [totals.reps, 'Reps'], [totals.minutes, 'Minutes']]} />
+      <Stats items={[[data.sessions.length, 'Workouts'], [totals.sets, 'Sets'], [totals.reps, 'Reps']]} />
       {!data.sessions.length && <Empty icon="bar-chart-outline" title="No data yet" />}
-      <Text style={s.sectionLabel}>Edit profile</Text>
-      <View style={s.card}>
-        <Text style={s.body}>Display name</Text>
-        <Input accessibilityLabel="Display name" value={name} onChangeText={setName} placeholder="Your name" maxLength={40} />
-        <Button title="Save name" secondary disabled={busy || !name.trim()} onPress={async () => { if (await commit({ ...data, name: name.trim() })) setNotice('Name saved.'); }} />
-      </View>
+      <Text style={s.footnote}>Totals include completed sets from saved workouts.</Text>
       <Text style={s.footnote}>Workouts are saved on this device.</Text>
     </ScrollView>
   </SafeAreaView>;
@@ -224,8 +221,7 @@ const s = StyleSheet.create({
   error: { color: '#ffa5a5', lineHeight: 22 },
   stack: { gap: 18, marginBottom: 20 },
   profileRow: { flexDirection: 'row', alignItems: 'center', gap: 20, paddingVertical: 12 },
-  avatar: { backgroundColor: '#a9401c', width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#fff', fontSize: 36, fontWeight: '400' },
+  avatar: { backgroundColor: '#000000', width: 76, height: 76, borderRadius: 38, borderWidth: 1, borderColor: '#38383a' },
   footnote: { color: colors.muted, fontSize: 13, lineHeight: 20 },
   noticeOverlay: { position: 'absolute', left: 16, right: 16, zIndex: 10, alignItems: 'center' },
   notice: { width: '100%', maxWidth: 600, borderRadius: 12, backgroundColor: '#38251e', paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8 },

@@ -19,7 +19,7 @@ EMBER uses a custom vector wordmark and ember emblem. The logo/name intro plays 
 
 - **Workout:** start an empty session or a quick-start template, search the exercise list, add/remove exercises, edit reps and optional kilograms, add sets, check off completed sets, and save.
 - **History:** search saved sessions, see aggregate counts, and open a session's exercise/set details.
-- **Profile:** edit a local display name and view workout, rep, and minute totals. This is not an account.
+- **Profile:** a fixed Prototype User with the EMBER logo and saved workout, completed-set, and rep totals. There is no editable name or account.
 
 Two tabs (Workout and History) would also satisfy the core topic. Three are used here to give the profile from the references a useful place without crowding the logging screen.
 
@@ -27,7 +27,7 @@ Two tabs (Workout and History) would also satisfy the core topic. Three are used
 
 The routine shortcuts are **Bodyweight** and **With equipment**. The Add Exercise picker includes offline muscle thumbnails, target labels, and equipment/muscle filters. Thumbnail artwork is adapted from the MIT-licensed react-native-body-highlighter project; see [asset credits and license](assets/muscles/README.md). The images illustrate target muscles rather than exercise technique.
 
-There is no server, authentication, user database, or SQLite setup. AsyncStorage stores one JSON document (`daily-rep-v1`) with a display name and completed sessions on the current device/browser. Saving awaits the storage write before updating history, and failures show a retryable message. Clearing app/browser data removes these records; they do not sync across devices.
+There is no server, authentication, user database, or SQLite setup. AsyncStorage stores one JSON document (`daily-rep-v1`) with completed sessions on the current device/browser. A legacy name field remains for compatibility with earlier saved data, but is no longer displayed or editable. Saving awaits the storage write before updating history, and failures show a retryable message. Clearing app/browser data removes these records; they do not sync across devices.
 
 Unfinished workouts remain available when switching tabs but are not persisted after closing/reloading the app. Only checked sets are saved; uncompleted exercises are omitted. Session duration is elapsed time rounded to minutes, minimum one minute. Templates are fixed starting points, and saved sessions are read-only in this prototype.
 
@@ -56,7 +56,7 @@ Manual demonstration:
 2. Add Push-ups, enter 12 reps, check the first set, then switch tabs and return. The draft should remain.
 3. Save the workout. History should show one session, one set, and 12 reps.
 4. Open the session and check its details. Search for Push-ups.
-5. Save a display name in Profile. Reload and verify both the name and completed session remain.
+5. Open Profile and verify the EMBER logo, fixed Prototype User name, and one workout / one set / 12 reps. Reload and verify the session and totals remain.
 6. Start a template, add a set, remove an exercise, and test both canceling and confirming discard.
 7. On a phone, check the number keyboard, scrolling, bottom tabs, and Android back behavior in modals.
 
