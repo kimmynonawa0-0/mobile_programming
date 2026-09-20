@@ -9,13 +9,13 @@ export default function ExercisePicker({ onSelect }) {
   const [equipment, setEquipment] = useState('All equipment');
   const [muscle, setMuscle] = useState('All muscles');
   const [filter, setFilter] = useState(null);
-  const equipmentOptions = ['All equipment', ...new Set(exerciseCatalog.map(e => e.equipment))];
-  const muscleOptions = ['All muscles', ...new Set(exerciseCatalog.map(e => e.muscle))];
+  const equipmentOptions = ['All equipment', ...[...new Set(exerciseCatalog.map(e => e.equipment))].sort()];
+  const muscleOptions = ['All muscles', ...[...new Set(exerciseCatalog.map(e => e.muscle))].sort()];
   const visible = exerciseCatalog.filter(exercise =>
     `${exercise.name} ${exercise.muscle} ${exercise.equipment}`.toLowerCase().includes(query.trim().toLowerCase()) &&
     (equipment === 'All equipment' || equipment === exercise.equipment) &&
     (muscle === 'All muscles' || muscle === exercise.muscle)
-  );
+  ).sort((a, b) => a.name.localeCompare(b.name));
 
   return <View style={styles.container}>
     <View style={styles.search}>
