@@ -9,6 +9,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { newExercise, summarize, finishSession } from './src/workouts';
 
 import ExercisePicker from './src/ExercisePicker';
+import { routines } from './src/routines';
+import RoutineIcon from './src/RoutineIcon';
 import EmberLaunch, { EmberWordmark } from './src/EmberBrand';
 
 const KEY = 'daily-rep-v1';
@@ -47,7 +49,7 @@ function Workout({ navigation }) {
     setDiscard(false);
     setError('');
   }
-  const start = (routine = []) => { setError(''); setNotice(''); setDraft({ id: String(Date.now()), startedAt: new Date().toISOString(), name: '', exercises: routine.map(newExercise) }); };
+  const start = (routine = [], name = '') => { setError(''); setNotice(''); setDraft({ id: String(Date.now()), startedAt: new Date().toISOString(), name, exercises: routine.map(newExercise) }); };
   async function save() {
     try {
       const session = finishSession(draft);
@@ -64,8 +66,12 @@ function Workout({ navigation }) {
       <Pressable accessibilityRole="button" onPress={() => start()} style={s.startButton}><Icon name="add" size={28} /><Text style={s.actionText}>Start Empty Workout</Text></Pressable>
       <Text style={s.sectionTitle}>Routines</Text>
       <View style={s.routines}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Start Bodyweight routine" onPress={() => start(['Push-ups', 'Squats', 'Lunges'])} style={s.routine}><Icon name="body-outline" size={30} /><Text style={s.routineTitle}>Bodyweight</Text><Text style={s.muted}>3 exercises</Text></Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Start With equipment routine" onPress={() => start(['Bench press', 'Dumbbell row', 'Bicep curls'])} style={s.routine}><Icon name="barbell-outline" size={30} /><Text style={s.routineTitle}>With equipment</Text><Text style={s.muted}>3 exercises</Text></Pressable>
+        {routines.map(routine => <Pressable key={routine.name} accessibilityRole="button" accessibilityLabel={`Start ${routine.name} day routine`} onPress={() => start(routine.exercises, `${routine.name} day`)} style={({ pressed }) => [s.routine, pressed && { opacity: 0.6 }]}>
+          <RoutineIcon type={routine.icon} />
+          <Text style={s.routineTitle}>{routine.name} day</Text>
+          <Text style={[s.muted, { textAlign: 'center' }]}>{routine.muscles}</Text>
+          <Text style={s.muted}>{routine.exercises.length} exercises</Text>
+        </Pressable>)}
       </View>
     </> : <>
       <Input accessibilityLabel="Workout name" placeholder="Workout name (optional)" value={draft.name} maxLength={60} onChangeText={name => { setDraft({ ...draft, name }); }} />
@@ -204,7 +210,7 @@ const s = StyleSheet.create({
   startButton: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 18, borderRadius: 12, backgroundColor: colors.card, minHeight: 60 },
   actionText: { color: colors.text, fontSize: 18, flexShrink: 1 },
   routines: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
-  routine: { flex: 1, minWidth: 130, minHeight: 146, backgroundColor: colors.card, borderRadius: 12, padding: 18, alignItems: 'center', justifyContent: 'center', gap: 10 },
+  routine: { flexGrow: 1, flexBasis: '45%', minWidth: 130, minHeight: 146, backgroundColor: colors.card, borderRadius: 12, padding: 18, alignItems: 'center', justifyContent: 'center', gap: 10 },
   routineTitle: { color: colors.text, fontSize: 17, textAlign: 'center' },
   card: { backgroundColor: colors.card, padding: 18, borderRadius: 12, gap: 14, marginBottom: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
